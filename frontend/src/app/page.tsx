@@ -53,7 +53,7 @@ function HorizontalScroll({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="relative group">
+    <div className="relative group/scroll">
       <div
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
@@ -63,7 +63,7 @@ function HorizontalScroll({ children }: { children: React.ReactNode }) {
       </div>
 
       {/* Navigation arrows (visible on hover) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-2 opacity-0 group-hover/scroll:opacity-100 transition-opacity">
         <button
           onClick={() => scroll("left")}
           className="pointer-events-auto p-2 rounded-full bg-black/80 text-white hover:bg-black transition-colors shadow-lg"
@@ -112,7 +112,8 @@ export default function Home() {
       const response = await fetch(`${API_URL}/api/search?term=podcast`);
       if (response.ok) {
         const data = await response.json();
-        setTrendingPodcasts(data.results || []);
+        // Updated to use the new response structure
+        setTrendingPodcasts(data.podcasts || []);
       }
     } catch {
       // Silent fail
@@ -284,18 +285,18 @@ export default function Home() {
                   <a
                     key={podcast.trackId}
                     href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
-                    className="flex-shrink-0 w-[200px] group cursor-pointer"
+                    className="flex-shrink-0 w-[200px] group/card cursor-pointer"
                   >
                     <div className="relative aspect-square mb-3">
                       <div className="absolute inset-0 bg-[#1c1c2e] rounded-lg overflow-hidden shadow-lg shadow-black/20">
                         <PodcastImage
                           src={podcast.artworkUrl600 || podcast.artworkUrl100}
                           alt={podcast.collectionName}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-500"
                         />
                       </div>
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg">
-                        <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/card:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg">
+                        <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover/card:scale-100 transition-transform">
                           <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z"/>
                           </svg>
@@ -305,7 +306,7 @@ export default function Home() {
                     <div className="flex items-start gap-2">
                       <span className="text-gray-500 font-medium text-sm mt-0.5">#{index + 1}</span>
                       <div className="min-w-0">
-                        <h3 className="text-white text-[15px] font-bold leading-tight mb-1 line-clamp-2 group-hover:underline decoration-2">
+                        <h3 className="text-white text-[15px] font-bold leading-tight mb-1 line-clamp-2 group-hover/card:underline decoration-2">
                           {podcast.collectionName}
                         </h3>
                         <p className={`text-[13px] font-medium truncate ${artistColors[index % artistColors.length]}`}>
@@ -421,7 +422,7 @@ export default function Home() {
                   <a
                     key={podcast.trackId}
                     href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
-                    className="bg-[#1c1c2e] hover:bg-[#25253a] p-4 rounded-md transition-colors group flex flex-col h-full min-h-[110px]"
+                    className="bg-[#1c1c2e] hover:bg-[#25253a] p-4 rounded-md transition-colors group/card flex flex-col h-full min-h-[110px]"
                   >
                     {/* Top Row: Meta */}
                     <div className="flex items-center gap-3 text-[11px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
@@ -439,7 +440,7 @@ export default function Home() {
                     </div>
 
                     {/* Episode Title (White) */}
-                    <h3 className="text-white text-[13px] font-bold leading-snug group-hover:underline decoration-1 line-clamp-2">
+                    <h3 className="text-white text-[13px] font-bold leading-snug group-hover/card:underline decoration-1 line-clamp-2">
                       {podcast.trackName || podcast.collectionName}
                     </h3>
                   </a>

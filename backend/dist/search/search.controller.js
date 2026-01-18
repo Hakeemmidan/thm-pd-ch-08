@@ -23,12 +23,15 @@ let SearchController = class SearchController {
         if (!term || term.trim().length === 0) {
             throw new common_1.HttpException('Search term is required', common_1.HttpStatus.BAD_REQUEST);
         }
-        const podcasts = await this.searchService.search(term.trim());
+        const [podcasts, episodes] = await Promise.all([
+            this.searchService.search(term.trim()),
+            this.searchService.searchEpisodes(term.trim()),
+        ]);
         return {
             success: true,
-            count: podcasts.length,
             term: term.trim(),
-            results: podcasts,
+            podcasts,
+            episodes,
         };
     }
 };

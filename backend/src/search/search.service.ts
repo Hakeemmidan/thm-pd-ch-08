@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { ItunesService, ITunesPodcast } from './itunes.service';
+import { ItunesService, ITunesPodcast, ITunesEpisode } from './itunes.service';
 import { Podcast } from '@prisma/client';
 
 @Injectable()
@@ -18,6 +18,10 @@ export class SearchService {
     );
 
     return podcasts;
+  }
+
+  async searchEpisodes(term: string): Promise<ITunesEpisode[]> {
+    return this.itunesService.searchEpisodes(term);
   }
 
   private async upsertPodcast(

@@ -4,9 +4,8 @@ export declare class SearchController {
     constructor(searchService: SearchService);
     search(term: string): Promise<{
         success: boolean;
-        count: number;
         term: string;
-        results: {
+        podcasts: {
             id: number;
             trackId: number;
             collectionName: string;
@@ -21,5 +20,6 @@ export declare class SearchController {
             createdAt: Date;
             updatedAt: Date;
         }[];
+        episodes: import("./itunes.service").ITunesEpisode[];
     }>;
 }

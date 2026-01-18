@@ -15,9 +15,22 @@ export interface Podcast {
   updatedAt: string;
 }
 
+export interface Episode {
+  trackId: number;
+  collectionId: number;
+  trackName: string;
+  collectionName: string;
+  artistName: string;
+  artworkUrl160?: string;
+  artworkUrl600?: string;
+  releaseDate: string;
+  trackTimeMillis?: number;
+  episodeUrl?: string;
+}
+
 export interface SearchResponse {
   success: boolean;
-  count: number;
   term: string;
-  results: Podcast[];
+  podcasts: Podcast[];
+  episodes: Episode[];
 }

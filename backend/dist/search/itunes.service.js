@@ -22,6 +22,7 @@ let ItunesService = class ItunesService {
                 params: {
                     term: term,
                     media: 'podcast',
+                    entity: 'podcast',
                     limit: limit,
                     country: 'SA',
                 },
@@ -31,6 +32,24 @@ let ItunesService = class ItunesService {
         catch (error) {
             console.error('iTunes API error:', error);
             throw new common_1.HttpException('Failed to fetch podcasts from iTunes', common_1.HttpStatus.SERVICE_UNAVAILABLE);
+        }
+    }
+    async searchEpisodes(term, limit = 20) {
+        try {
+            const response = await axios_1.default.get(this.baseUrl, {
+                params: {
+                    term: term,
+                    media: 'podcast',
+                    entity: 'podcastEpisode',
+                    limit: limit,
+                    country: 'SA',
+                },
+            });
+            return response.data.results;
+        }
+        catch (error) {
+            console.error('iTunes API error (episodes):', error);
+            return [];
         }
     }
 };

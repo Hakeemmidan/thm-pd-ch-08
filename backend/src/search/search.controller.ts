@@ -14,13 +14,16 @@ export class SearchController {
       );
     }
 
-    const podcasts = await this.searchService.search(term.trim());
+    const [podcasts, episodes] = await Promise.all([
+      this.searchService.search(term.trim()),
+      this.searchService.searchEpisodes(term.trim()),
+    ]);
 
     return {
       success: true,
-      count: podcasts.length,
       term: term.trim(),
-      results: podcasts,
+      podcasts,
+      episodes,
     };
   }
 }

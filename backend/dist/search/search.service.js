@@ -23,6 +23,9 @@ let SearchService = class SearchService {
         const podcasts = await Promise.all(itunesPodcasts.map((podcast) => this.upsertPodcast(podcast, term)));
         return podcasts;
     }
+    async searchEpisodes(term) {
+        return this.itunesService.searchEpisodes(term);
+    }
     async upsertPodcast(iTunesPodcast, searchTerm) {
         const podcastData = {
             trackId: iTunesPodcast.trackId,
