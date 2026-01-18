@@ -4,6 +4,10 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
+        hostname: '**.mzstatic.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'is1-ssl.mzstatic.com',
       },
       {
@@ -22,11 +26,9 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'is5-ssl.mzstatic.com',
       },
-      {
-        protocol: 'https',
-        hostname: '*.mzstatic.com',
-      },
     ],
+    // Allow all external images as a fallback
+    unoptimized: false,
   },
 };
 

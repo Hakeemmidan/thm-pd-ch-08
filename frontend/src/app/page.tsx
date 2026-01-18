@@ -2,31 +2,66 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Podcast } from "@/types/podcast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+function PodcastImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(src);
+    setHasError(false);
+  }, [src]);
+
+  if (hasError || !imgSrc) {
+    return (
+      <div className={`${className} bg-background-hover flex items-center justify-center`}>
+        <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 export default function Home() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [trendingPodcasts, setTrendingPodcasts] = useState<Podcast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch trending podcasts on load
     fetchTrendingPodcasts();
   }, []);
 
   const fetchTrendingPodcasts = async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const response = await fetch(`${API_URL}/api/search?term=podcast`);
       if (response.ok) {
         const data = await response.json();
         setTrendingPodcasts(data.results || []);
+      } else {
+        setError(`Failed to fetch: ${response.status}`);
       }
-    } catch (error) {
-      console.error("Failed to fetch trending podcasts:", error);
+    } catch {
+      setError("Failed to connect to API");
     } finally {
       setIsLoading(false);
     }
@@ -84,11 +119,18 @@ export default function Home() {
 
       {/* Main Content */}
       <main className="pt-14">
+        {/* Error State */}
+        {error && (
+          <div className="px-5 py-4 text-accent-pink text-sm">
+            Error: {error} - <button onClick={fetchTrendingPodcasts} className="underline">Retry</button>
+          </div>
+        )}
+
         {/* Trending Podcasts Section */}
         <section className="py-6">
           <div className="px-5 mb-4">
             <h2 className="text-white font-semibold text-base">Trending podcasts in all genres</h2>
-            <p className="text-text-muted text-sm">The most popular podcasts overall now.</p>
+            <p className="text-text-muted text-sm">The most popular podcasts overall now. {trendingPodcasts.length > 0 && `(${trendingPodcasts.length} results)`}</p>
           </div>
 
           <div className="relative">
@@ -101,11 +143,13 @@ export default function Home() {
                 // Loading skeletons
                 Array.from({ length: 10 }).map((_, i) => (
                   <div key={i} className="flex-shrink-0 w-[180px]">
-                    <div className="aspect-square bg-background-card rounded-lg animate-pulse mb-3" />
+                    <div className="w-[180px] h-[180px] bg-background-card rounded-lg animate-pulse mb-3" />
                     <div className="h-4 bg-background-card rounded animate-pulse mb-2 w-3/4" />
                     <div className="h-3 bg-background-card rounded animate-pulse w-1/2" />
                   </div>
                 ))
+              ) : trendingPodcasts.length === 0 ? (
+                <div className="text-text-muted text-sm">No podcasts found</div>
               ) : (
                 trendingPodcasts.map((podcast, index) => (
                   <a 
@@ -113,13 +157,11 @@ export default function Home() {
                     href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
                     className="flex-shrink-0 w-[180px] group cursor-pointer"
                   >
-                    <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-background-card">
-                      <Image
+                    <div className="relative w-[180px] h-[180px] rounded-lg overflow-hidden mb-3 bg-background-card">
+                      <PodcastImage
                         src={podcast.artworkUrl600 || podcast.artworkUrl100}
                         alt={podcast.collectionName}
-                        fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
-                        sizes="180px"
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -169,7 +211,7 @@ export default function Home() {
                 "Health & Fitness",
                 "News",
                 "Sports",
-              ].map((genre) => (
+              ].map((genre, genreIndex) => (
                 <a
                   key={genre}
                   href={`/search?q=${encodeURIComponent(genre)}`}
@@ -177,22 +219,20 @@ export default function Home() {
                 >
                   <div className="text-white text-sm font-medium mb-3">{genre}</div>
                   <div className="relative h-16 flex items-end justify-center">
-                    {/* Stacked images placeholder */}
-                    {trendingPodcasts.slice(0, 3).map((podcast, i) => (
+                    {/* Stacked images - use different podcasts for each genre */}
+                    {trendingPodcasts.slice(genreIndex % Math.max(1, trendingPodcasts.length - 2), genreIndex % Math.max(1, trendingPodcasts.length - 2) + 3).map((podcast, i) => (
                       <div
-                        key={i}
+                        key={podcast.trackId}
                         className={`absolute rounded-md overflow-hidden shadow-lg ${
                           i === 0 ? "w-10 h-10 left-2 bottom-0 z-10" :
                           i === 1 ? "w-12 h-12 left-1/2 -translate-x-1/2 bottom-1 z-20" :
                           "w-14 h-14 right-2 bottom-0 z-30"
                         }`}
                       >
-                        <Image
+                        <PodcastImage
                           src={podcast.artworkUrl100}
                           alt=""
-                          fill
-                          className="object-cover"
-                          sizes="56px"
+                          className="w-full h-full object-cover"
                         />
                       </div>
                     ))}
@@ -234,12 +274,10 @@ export default function Home() {
                 >
                   {/* Artwork */}
                   <div className="relative w-20 h-20 rounded-md overflow-hidden bg-background-card flex-shrink-0">
-                    <Image
+                    <PodcastImage
                       src={podcast.artworkUrl100}
                       alt={podcast.collectionName}
-                      fill
-                      className="object-cover"
-                      sizes="80px"
+                      className="w-full h-full object-cover"
                     />
                     {/* Play overlay */}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -2,10 +2,41 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Image from "next/image";
 import { Podcast, SearchResponse } from "@/types/podcast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+function PodcastImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [imgSrc, setImgSrc] = useState(src);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgSrc(src);
+    setHasError(false);
+  }, [src]);
+
+  if (hasError || !imgSrc) {
+    return (
+      <div className={`${className} bg-background-hover flex items-center justify-center`}>
+        <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+        </svg>
+      </div>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={imgSrc}
+      alt={alt}
+      className={className}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setHasError(true)}
+    />
+  );
+}
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -30,16 +61,13 @@ function SearchContent() {
     
     try {
       const response = await fetch(`${API_URL}/api/search?term=${encodeURIComponent(term)}`);
-      
       if (!response.ok) {
-        throw new Error("Failed to fetch podcasts");
+        throw new Error(`Failed to fetch podcasts: ${response.status}`);
       }
-      
       const data: SearchResponse = await response.json();
       setPodcasts(data.results);
-    } catch (err) {
+    } catch {
       setError("Failed to search. Please try again.");
-      console.error("Search error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -165,13 +193,11 @@ function SearchContent() {
                       key={podcast.trackId} 
                       className="flex-shrink-0 w-[180px] group cursor-pointer"
                     >
-                      <div className="relative aspect-square rounded-lg overflow-hidden mb-3 bg-background-card">
-                        <Image
+                      <div className="relative w-[180px] h-[180px] rounded-lg overflow-hidden mb-3 bg-background-card">
+                        <PodcastImage
                           src={podcast.artworkUrl600 || podcast.artworkUrl100}
                           alt={podcast.collectionName}
-                          fill
-                          className="object-cover transition-transform duration-300 group-hover:scale-105"
-                          sizes="180px"
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -208,12 +234,10 @@ function SearchContent() {
                   >
                     {/* Artwork */}
                     <div className="relative w-20 h-20 rounded-md overflow-hidden bg-background-card flex-shrink-0">
-                      <Image
+                      <PodcastImage
                         src={podcast.artworkUrl100}
                         alt={podcast.collectionName}
-                        fill
-                        className="object-cover"
-                        sizes="80px"
+                        className="w-full h-full object-cover"
                       />
                       {/* Play overlay */}
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
