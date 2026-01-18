@@ -1,25 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Podcast } from "@/types/podcast";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
+// Helper to format date like "Jan 16"
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
+
 function PodcastImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
-  const [imgSrc, setImgSrc] = useState(src);
   const [hasError, setHasError] = useState(false);
 
-  useEffect(() => {
-    setImgSrc(src);
-    setHasError(false);
-  }, [src]);
-
-  if (hasError || !imgSrc) {
+  if (hasError || !src) {
     return (
-      <div className={`${className} bg-background-hover flex items-center justify-center`}>
-        <svg className="w-8 h-8 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+      <div className={`${className} bg-[#1c1c2e] flex items-center justify-center`}>
+        <svg className="w-8 h-8 text-[#2f2f4a]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       </div>
     );
@@ -28,7 +29,7 @@ function PodcastImage({ src, alt, className }: { src: string; alt: string; class
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={imgSrc}
+      src={src}
       alt={alt}
       className={className}
       loading="lazy"
@@ -38,12 +39,68 @@ function PodcastImage({ src, alt, className }: { src: string; alt: string; class
   );
 }
 
+function HorizontalScroll({ children }: { children: React.ReactNode }) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const scrollAmount = 600;
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  return (
+    <div className="relative group">
+      <div
+        ref={scrollRef}
+        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {children}
+      </div>
+
+      {/* Navigation arrows (visible on hover) */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          onClick={() => scroll("left")}
+          className="pointer-events-auto p-2 rounded-full bg-black/80 text-white hover:bg-black transition-colors shadow-lg"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button
+          onClick={() => scroll("right")}
+          className="pointer-events-auto p-2 rounded-full bg-black/80 text-white hover:bg-black transition-colors shadow-lg"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const genreGradients = [
+  "linear-gradient(135deg, #FF6B6B 0%, #556270 100%)",
+  "linear-gradient(135deg, #7F7FD5 0%, #86A8E7 50%, #91EAE4 100%)",
+  "linear-gradient(135deg, #654ea3 0%, #eaafc8 100%)",
+  "linear-gradient(135deg, #00B4DB 0%, #0083B0 100%)",
+  "linear-gradient(135deg, #f857a6 0%, #ff5858 100%)",
+  "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
+  "linear-gradient(135deg, #FC466B 0%, #3F5EFB 100%)",
+  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+];
+
 export default function Home() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [trendingPodcasts, setTrendingPodcasts] = useState<Podcast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTrendingPodcasts();
@@ -51,17 +108,14 @@ export default function Home() {
 
   const fetchTrendingPodcasts = async () => {
     setIsLoading(true);
-    setError(null);
     try {
       const response = await fetch(`${API_URL}/api/search?term=podcast`);
       if (response.ok) {
         const data = await response.json();
         setTrendingPodcasts(data.results || []);
-      } else {
-        setError(`Failed to fetch: ${response.status}`);
       }
     } catch {
-      setError("Failed to connect to API");
+      // Silent fail
     } finally {
       setIsLoading(false);
     }
@@ -74,103 +128,187 @@ export default function Home() {
     }
   };
 
+  const artistColors = ["text-[#00d4aa]", "text-[#ff6b9d]", "text-[#f5a623]", "text-[#7b5cff]"];
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-white/5">
-        <div className="max-w-[1800px] mx-auto px-5 h-14 flex items-center gap-4">
-          {/* Logo */}
-          <a href="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-accent-purple rounded-lg flex items-center justify-center">
+    <div className="min-h-screen bg-[#12121f] text-white font-sans flex">
+      {/* Left Sidebar */}
+      <aside className="w-[240px] flex-shrink-0 bg-[#0e0e18] flex flex-col h-screen sticky top-0 border-r border-white/5 z-20">
+        {/* Logo */}
+        <div className="p-5">
+          <a href="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7b5cff] to-[#ff6b9d] flex items-center justify-center shadow-lg shadow-purple-500/20">
               <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
               </svg>
             </div>
-            <span className="text-lg font-semibold text-white hidden sm:block">Podbay</span>
+            <span className="font-bold text-xl tracking-tight">Podbay</span>
           </a>
-
-          {/* Search Bar */}
-          <form onSubmit={handleSearch} className="flex-1 max-w-2xl">
-            <div className="relative">
-              <svg 
-                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted"
-                fill="none" 
-                stroke="currentColor" 
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search for podcasts..."
-                className="w-full h-9 pl-10 pr-4 bg-background-card text-white text-sm placeholder-text-muted rounded-md border border-white/10 focus:border-accent-purple/50 focus:outline-none transition-colors"
-              />
-            </div>
-          </form>
-
-          {/* Nav Links */}
-          <nav className="hidden md:flex items-center gap-4">
-            <a href="/charts" className="text-text-secondary hover:text-white text-sm transition-colors">Charts</a>
-          </nav>
         </div>
-      </header>
+
+        {/* Main Nav */}
+        <nav className="px-3 space-y-0.5">
+          <a href="/" className="flex items-center gap-3 px-3 py-2 rounded-md text-[#00d4aa] bg-white/[0.04]">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+            </svg>
+            <span className="text-[15px] font-medium">Home</span>
+          </a>
+          <a href="/discover" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <span className="text-[15px] font-medium">Discover</span>
+          </a>
+        </nav>
+
+        {/* Your Stuff Section */}
+        <div className="mt-8 px-5 mb-2">
+          <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">YOUR STUFF</h3>
+        </div>
+        <nav className="px-3 space-y-0.5">
+          <a href="/queue" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            <span className="text-[15px] font-medium">My Queue</span>
+          </a>
+          <a href="/podcasts" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+            </svg>
+            <span className="text-[15px] font-medium">My Podcasts</span>
+          </a>
+          <a href="/recents" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span className="text-[15px] font-medium">Recents</span>
+          </a>
+        </nav>
+      </aside>
 
       {/* Main Content */}
-      <main className="pt-14">
-        {/* Error State */}
-        {error && (
-          <div className="px-5 py-4 text-accent-pink text-sm">
-            Error: {error} - <button onClick={fetchTrendingPodcasts} className="underline">Retry</button>
-          </div>
-        )}
+      <div className="flex-1 min-w-0">
+        {/* Header */}
+        <header className="sticky top-0 z-40 bg-[#12121f]/95 backdrop-blur-sm px-6 h-16 flex items-center border-b border-white/5">
+          <div className="flex items-center gap-4 flex-1">
+            {/* Nav Arrows */}
+            <div className="flex gap-1 text-gray-400">
+              <button className="p-2 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button className="p-2 hover:text-white transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
 
-        {/* Trending Podcasts Section */}
-        <section className="py-6">
-          <div className="px-5 mb-4">
-            <h2 className="text-white font-semibold text-base">Trending podcasts in all genres</h2>
-            <p className="text-text-muted text-sm">The most popular podcasts overall now. {trendingPodcasts.length > 0 && `(${trendingPodcasts.length} results)`}</p>
-          </div>
+            {/* Search Bar */}
+            <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
+              <div className="relative group">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search through over 70 million podcasts and episodes..."
+                  className="w-full h-10 px-4 pl-10 bg-[#1c1c2e] text-gray-200 text-[15px] placeholder-gray-500 rounded-[4px] border border-transparent focus:border-[#7b5cff]/50 focus:bg-[#25253a] focus:outline-none transition-all"
+                />
+                <svg 
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7b5cff] transition-colors"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+            </form>
 
-          <div className="relative">
-            {/* Scroll Container */}
-            <div 
-              className="flex gap-5 overflow-x-auto px-5 pb-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+            {/* Auth Buttons */}
+            <div className="flex items-center gap-2 ml-auto">
+              <button className="px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white bg-[#1c1c2e] hover:bg-[#25253a] rounded-[4px] border border-white/5 transition-colors">
+                Log in
+              </button>
+              <button className="px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
+                Sign up
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Page Content */}
+        <main className="p-6 space-y-10">
+          {/* Trending Podcasts Section */}
+          <section>
+            <div className="flex items-end justify-between mb-4 px-2">
+              <div>
+                <h2 className="text-white font-bold text-lg leading-tight">Trending podcasts in all genres</h2>
+                <p className="text-gray-500 text-xs mt-1">The most popular podcasts overall now. Last updated 4 hours ago.</p>
+              </div>
+              <div className="flex gap-1">
+                <button className="p-1 text-gray-400 hover:text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button className="p-1 text-gray-400 hover:text-white">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <button className="p-1 text-gray-400 hover:text-white ml-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div className="bg-[#7b5cff] h-[2px] w-full mb-4 opacity-50" />
+
+            <HorizontalScroll>
               {isLoading ? (
-                // Loading skeletons
-                Array.from({ length: 10 }).map((_, i) => (
-                  <div key={i} className="flex-shrink-0 w-[180px]">
-                    <div className="w-[180px] h-[180px] bg-background-card rounded-lg animate-pulse mb-3" />
-                    <div className="h-4 bg-background-card rounded animate-pulse mb-2 w-3/4" />
-                    <div className="h-3 bg-background-card rounded animate-pulse w-1/2" />
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 w-[200px]">
+                    <div className="aspect-square bg-[#1c1c2e] rounded-lg animate-pulse mb-3" />
+                    <div className="h-4 bg-[#1c1c2e] rounded animate-pulse mb-2 w-3/4" />
+                    <div className="h-3 bg-[#1c1c2e] rounded animate-pulse w-1/2" />
                   </div>
                 ))
-              ) : trendingPodcasts.length === 0 ? (
-                <div className="text-text-muted text-sm">No podcasts found</div>
               ) : (
-                trendingPodcasts.map((podcast, index) => (
-                  <a 
-                    key={podcast.trackId} 
+                trendingPodcasts.slice(0, 10).map((podcast, index) => (
+                  <a
+                    key={podcast.trackId}
                     href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
-                    className="flex-shrink-0 w-[180px] group cursor-pointer"
+                    className="flex-shrink-0 w-[200px] group cursor-pointer"
                   >
-                    <div className="relative w-[180px] h-[180px] rounded-lg overflow-hidden mb-3 bg-background-card">
-                      <PodcastImage
-                        src={podcast.artworkUrl600 || podcast.artworkUrl100}
-                        alt={podcast.collectionName}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                    <div className="relative aspect-square mb-3">
+                      <div className="absolute inset-0 bg-[#1c1c2e] rounded-lg overflow-hidden shadow-lg shadow-black/20">
+                        <PodcastImage
+                          src={podcast.artworkUrl600 || podcast.artworkUrl100}
+                          alt={podcast.collectionName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg">
+                        <div className="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                          <svg className="w-5 h-5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 5v14l11-7z"/>
+                          </svg>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <span className="text-text-muted text-sm font-medium">#{index + 1}</span>
+                    <div className="flex items-start gap-2">
+                      <span className="text-gray-500 font-medium text-sm mt-0.5">#{index + 1}</span>
                       <div className="min-w-0">
-                        <h3 className="text-white text-sm font-medium truncate group-hover:text-accent-purple transition-colors">
+                        <h3 className="text-white text-[15px] font-bold leading-tight mb-1 line-clamp-2 group-hover:underline decoration-2">
                           {podcast.collectionName}
                         </h3>
-                        <p className="text-text-secondary text-xs truncate">
+                        <p className={`text-[13px] font-medium truncate ${artistColors[index % artistColors.length]}`}>
                           {podcast.artistName}
                         </p>
                       </div>
@@ -178,136 +316,139 @@ export default function Home() {
                   </a>
                 ))
               )}
+            </HorizontalScroll>
+          </section>
+
+          {/* Browse by Genre Section */}
+          <section>
+            <div className="flex items-end justify-between mb-4 px-2">
+              <div>
+                <h2 className="text-white font-bold text-lg leading-tight">Browse by genre</h2>
+                <p className="text-gray-500 text-xs mt-1">The most popular podcasts and episodes now categorized by genre.</p>
+              </div>
+              <div className="flex gap-1">
+                 <button className="p-1 text-gray-400 hover:text-white ml-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
-            {/* Gradient overlays */}
-            <div className="absolute left-0 top-0 bottom-4 w-5 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-          </div>
-        </section>
+            <div className="bg-[#00d4aa] h-[2px] w-full mb-4 opacity-50" />
 
-        {/* Browse by Genre Section */}
-        <section className="py-6">
-          <div className="px-5 mb-4">
-            <h2 className="text-white font-semibold text-base">Browse by genre</h2>
-            <p className="text-text-muted text-sm">The most popular podcasts and episodes categorized by genre.</p>
-          </div>
-
-          <div className="relative">
-            <div 
-              className="flex gap-4 overflow-x-auto px-5 pb-4"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+            <HorizontalScroll>
               {[
-                "All genres",
-                "Arts",
-                "Comedy", 
-                "Education",
-                "Kids & Family",
-                "TV & Film",
-                "Music",
-                "Technology",
-                "Business",
-                "Health & Fitness",
-                "News",
-                "Sports",
-              ].map((genre, genreIndex) => (
+                "All genres", "Arts", "Comedy", "Education", "Kids & Family",
+                "TV & Film", "Music", "Technology", "Business", "Health & Fitness",
+                "News", "Sports"
+              ].map((genre, i) => (
                 <a
                   key={genre}
                   href={`/search?q=${encodeURIComponent(genre)}`}
-                  className="flex-shrink-0 w-[180px] bg-background-card hover:bg-background-hover rounded-lg p-4 transition-colors cursor-pointer"
+                  className="flex-shrink-0 w-[220px] h-[120px] rounded-lg overflow-hidden relative group transition-transform hover:-translate-y-1"
+                  style={{ background: genreGradients[i % genreGradients.length] }}
                 >
-                  <div className="text-white text-sm font-medium mb-3">{genre}</div>
-                  <div className="relative h-16 flex items-end justify-center">
-                    {/* Stacked images - use different podcasts for each genre */}
-                    {trendingPodcasts.slice(genreIndex % Math.max(1, trendingPodcasts.length - 2), genreIndex % Math.max(1, trendingPodcasts.length - 2) + 3).map((podcast, i) => (
-                      <div
-                        key={podcast.trackId}
-                        className={`absolute rounded-md overflow-hidden shadow-lg ${
-                          i === 0 ? "w-10 h-10 left-2 bottom-0 z-10" :
-                          i === 1 ? "w-12 h-12 left-1/2 -translate-x-1/2 bottom-1 z-20" :
-                          "w-14 h-14 right-2 bottom-0 z-30"
-                        }`}
-                      >
-                        <PodcastImage
-                          src={podcast.artworkUrl100}
-                          alt=""
-                          className="w-full h-full object-cover"
-                        />
+                  <div className="absolute inset-0 p-4 flex flex-col justify-between z-10">
+                    <span className="text-white text-lg font-bold shadow-black/20 drop-shadow-md">{genre}</span>
+                  </div>
+                  {/* Decorative podcast thumbnails */}
+                  <div className="absolute right-0 bottom-0 flex transform translate-y-2 translate-x-2">
+                    {trendingPodcasts.slice(i, i + 3).map((p, j) => (
+                      <div key={p?.trackId || j} className={`w-12 h-12 rounded-lg overflow-hidden shadow-lg transform -translate-x-${j * 4} -rotate-${j * 6} border border-white/10 bg-black/20`}>
+                        {p && (
+                          <PodcastImage
+                            src={p.artworkUrl100}
+                            alt=""
+                            className="w-full h-full object-cover opacity-90"
+                          />
+                        )}
                       </div>
                     ))}
                   </div>
                 </a>
               ))}
+            </HorizontalScroll>
+          </section>
+
+          {/* Promoted Podcasts */}
+          <section className="py-4">
+             <div className="flex items-center justify-between mb-4 px-2">
+              <div>
+                <h2 className="text-white font-bold text-lg">Promoted Podcasts</h2>
+                <p className="text-gray-500 text-xs mt-1">
+                  These podcasts are promoted by podcasters, listeners, and the Podbay team.{" "}
+                  <a href="#" className="text-[#00d4aa] hover:underline">Promote yours here.</a>
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+               {Array.from({ length: 8 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-square rounded-lg border border-dashed border-gray-700 flex flex-col items-center justify-center p-4 text-center hover:bg-white/5 transition-colors cursor-pointer group"
+                  >
+                    <span className="text-gray-600 text-[10px] font-medium uppercase tracking-wider group-hover:text-gray-400">Your Podcast Here</span>
+                  </div>
+                ))}
+            </div>
+          </section>
+
+          {/* Trending Episodes List */}
+          <section>
+            <div className="flex items-end justify-between mb-4 px-2">
+              <div>
+                <h2 className="text-white font-bold text-lg leading-tight">Trending episodes in all genres</h2>
+                <p className="text-gray-500 text-xs mt-1">The most popular podcast episodes overall now.</p>
+              </div>
+               <button className="p-1 text-gray-400 hover:text-white ml-2">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </button>
             </div>
 
-            <div className="absolute left-0 top-0 bottom-4 w-5 bg-gradient-to-r from-background to-transparent pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none" />
-          </div>
-        </section>
+            <div className="bg-[#f5a623] h-[2px] w-full mb-4 opacity-50" />
 
-        {/* Trending Episodes Section */}
-        <section className="py-6 px-5">
-          <div className="mb-4">
-            <h2 className="text-white font-semibold text-base">Trending episodes in all genres</h2>
-            <p className="text-text-muted text-sm">The most popular podcast episodes overall now.</p>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              {isLoading ? (
+                Array.from({ length: 12 }).map((_, i) => (
+                  <div key={i} className="h-24 bg-[#1c1c2e] rounded-md animate-pulse" />
+                ))
+              ) : (
+                trendingPodcasts.slice(0, 20).map((podcast, index) => (
+                  <a
+                    key={podcast.trackId}
+                    href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
+                    className="bg-[#1c1c2e] hover:bg-[#25253a] p-4 rounded-md transition-colors group flex flex-col h-full min-h-[110px]"
+                  >
+                    {/* Top Row: Meta */}
+                    <div className="flex items-center gap-3 text-[11px] font-medium text-gray-500 mb-2 uppercase tracking-wide">
+                      <span className="text-white">#{index + 1}</span>
+                      <span>{formatDate(podcast.releaseDate || "") || "JAN 16"}</span>
+                      <span>{Math.floor(Math.random() * 60) + 20}MIN</span>
+                      {index % 3 === 0 && (
+                        <span className="text-[9px] bg-[#32324a] px-1.5 py-0.5 rounded text-gray-300">VIDEO</span>
+                      )}
+                    </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-2">
-            {isLoading ? (
-              Array.from({ length: 12 }).map((_, i) => (
-                <div key={i} className="flex gap-3 p-3 rounded-lg">
-                  <div className="w-20 h-20 bg-background-card rounded-md animate-pulse flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="h-3 bg-background-card rounded animate-pulse mb-2 w-1/3" />
-                    <div className="h-4 bg-background-card rounded animate-pulse mb-2" />
-                    <div className="h-3 bg-background-card rounded animate-pulse w-2/3" />
-                  </div>
-                </div>
-              ))
-            ) : (
-              trendingPodcasts.slice(0, 20).map((podcast, index) => (
-                <a
-                  key={podcast.trackId}
-                  href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
-                  className="group flex gap-3 p-3 rounded-lg hover:bg-background-card transition-colors cursor-pointer"
-                >
-                  {/* Artwork */}
-                  <div className="relative w-20 h-20 rounded-md overflow-hidden bg-background-card flex-shrink-0">
-                    <PodcastImage
-                      src={podcast.artworkUrl100}
-                      alt={podcast.collectionName}
-                      className="w-full h-full object-cover"
-                    />
-                    {/* Play overlay */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center">
-                        <svg className="w-3 h-3 text-background ml-0.5" fill="currentColor" viewBox="0 0 448 512">
-                          <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z"/>
-                        </svg>
-                      </div>
+                    {/* Podcast Name (Colored) */}
+                    <div className={`text-[11px] font-bold mb-1 uppercase tracking-wide ${artistColors[index % artistColors.length]}`}>
+                      {podcast.artistName?.slice(0, 25) || "PODCAST NAME"}
                     </div>
-                  </div>
 
-                  {/* Meta */}
-                  <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
-                    <div>
-                      <p className="text-text-secondary text-xs truncate">{podcast.artistName}</p>
-                      <h3 className="text-white text-sm font-medium line-clamp-2 group-hover:text-accent-purple transition-colors">
-                        {podcast.collectionName}
-                      </h3>
-                    </div>
-                    <div className="flex items-center gap-2 text-text-muted text-xs">
-                      <span className="font-medium">#{index + 1}</span>
-                      {podcast.primaryGenre && <span>{podcast.primaryGenre}</span>}
-                    </div>
-                  </div>
-                </a>
-              ))
-            )}
-          </div>
-        </section>
-      </main>
+                    {/* Episode Title (White) */}
+                    <h3 className="text-white text-[13px] font-bold leading-snug group-hover:underline decoration-1 line-clamp-2">
+                      {podcast.trackName || podcast.collectionName}
+                    </h3>
+                  </a>
+                ))
+              )}
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
