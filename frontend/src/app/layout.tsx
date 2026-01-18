@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Podcast Search | Thmanyah",
-  description: "Search for podcasts using iTunes Search API",
+  title: "Podbay - The best podcast player on the web.",
+  description: "The fastest and easiest podcast player designed for the web.",
+  themeColor: "hsl(236, 28%, 12%)",
 };
 
 export default function RootLayout({
@@ -12,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="en">
       <body className="antialiased">
         {children}
       </body>
