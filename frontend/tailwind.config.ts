@@ -24,7 +24,7 @@ const config: Config = {
         "accent-magenta": "rgb(255, 120, 201)",
       },
       fontFamily: {
-        sans: ["var(--font-ibm-plex-arabic)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
     },
   },

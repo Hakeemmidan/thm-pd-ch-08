@@ -54,7 +54,6 @@ The frontend will run on `http://localhost:3000`
 | Database | PostgreSQL + Prisma ORM |
 | Frontend | Next.js 14 (App Router) + TypeScript |
 | Styling | Tailwind CSS |
-| Font | IBM Plex Sans Arabic |
 
 ## Project Structure
 
@@ -73,7 +72,6 @@ thmanyah-fullstack-challenge/
 │   │   ├── app/           # App Router pages
 │   │   ├── components/    # React components
 │   │   ├── types/         # TypeScript types
-│   │   └── fonts/         # Fonts
 │   └── tailwind.config.ts # Tailwind configuration
 └── README.md
 ```
