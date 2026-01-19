@@ -8,7 +8,7 @@ export default function Sidebar() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <aside className="w-[240px] flex-shrink-0 bg-[#0e0e18] flex flex-col h-screen sticky top-0 border-r border-white/5 z-20">
+    <aside className="w-[240px] flex-shrink-0 bg-[#0e0e18] flex-col h-screen sticky top-0 border-r border-white/5 z-20 hidden md:flex">
       {/* Logo - Always the same */}
       <div className="p-5">
         <a href="/" className="flex items-center gap-3">

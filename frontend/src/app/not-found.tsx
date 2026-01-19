@@ -3,12 +3,14 @@
 import { Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import MobileNav from "@/components/MobileNav";
 
 function NotFoundContent() {
   return (
     <div className="flex h-screen bg-[#12121f] overflow-hidden">
       <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
+      <MobileNav />
+      <div className="flex-1 flex flex-col min-w-0 pb-16 md:pb-0">
         <Header />
         <main className="flex-1 flex flex-col items-center justify-center p-4 relative">
           <div className="mb-12 transform rotate-[15deg] hover:rotate-0 transition-transform duration-700 ease-out">

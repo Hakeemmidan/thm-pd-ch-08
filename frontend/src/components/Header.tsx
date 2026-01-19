@@ -42,10 +42,10 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#12121f]/95 backdrop-blur-sm px-6 h-16 flex items-center border-b border-white/5">
+    <header className="sticky top-0 z-40 bg-[#12121f]/95 backdrop-blur-sm px-4 md:px-6 h-16 flex items-center border-b border-white/5">
       <div className="flex items-center gap-4 flex-1">
-        {/* Nav Arrows */}
-        <div className="flex gap-1 text-gray-400">
+        {/* Nav Arrows - Hidden on mobile */}
+        <div className="hidden md:flex gap-1 text-gray-400">
           <button className="p-2 hover:text-white transition-colors" onClick={() => router.back()}>
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -65,9 +65,14 @@ export default function Header() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search through over 70 million podcasts and episodes..."
-              className="w-full h-10 px-4 pl-10 bg-[#1c1c2e] text-gray-200 text-[15px] placeholder-gray-500 rounded-[4px] border border-transparent focus:border-[#7b5cff]/50 focus:bg-[#25253a] focus:outline-none transition-all"
+              placeholder="Search..."
+              className="w-full h-10 px-4 pl-10 bg-[#1c1c2e] text-gray-200 text-[15px] placeholder-gray-500 rounded-[4px] border border-transparent focus:border-[#7b5cff]/50 focus:bg-[#25253a] focus:outline-none transition-all md:placeholder:text-[15px]"
             />
+            {/* Desktop placeholder via CSS/JS logic or separate span? Simplified to just changing placeholder text based on screen size via CSS is hard with standard input placeholder. 
+                I'll just use a shorter placeholder "Search..." for now or stick with the long one and let it truncate.
+                Actually, simpler: use a shorter placeholder on mobile via conditional rendering or just a generic short one. 
+                Let's stick to the existing one but maybe truncate it with text-overflow? Input handles this naturally.
+            */}
             <svg 
               className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7b5cff] transition-colors"
               fill="none" 
@@ -79,12 +84,12 @@ export default function Header() {
           </div>
         </form>
 
-        {/* Auth Buttons */}
+        {/* Auth Buttons - Hidden text on mobile or just hidden? Let's hide completely on very small screens or keep menu */}
         <div className="flex items-center gap-2 ml-auto">
-          <button className="px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white bg-[#1c1c2e] hover:bg-[#25253a] rounded-[4px] border border-white/5 transition-colors">
+          <button className="hidden md:block px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white bg-[#1c1c2e] hover:bg-[#25253a] rounded-[4px] border border-white/5 transition-colors">
             Log in
           </button>
-          <button className="px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
+          <button className="hidden md:block px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
             Sign up
           </button>
           <div className="ml-1">

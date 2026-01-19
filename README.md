@@ -46,6 +46,9 @@ thmanyah-fullstack-challenge/
 
 Create a PostgreSQL database:
 
+
+or 
+
 ```bash
 createdb podcast_search
 ```
@@ -118,34 +121,8 @@ GET /api/search?term={keyword}
 }
 ```
 
-## Features
-
-- **Search**: Search for podcasts by keyword using iTunes Search API
-- **Persistence**: Results are stored in PostgreSQL for future reference
-- **RTL Support**: Full Arabic language support with right-to-left layout
-- **Responsive Design**: Works on desktop and mobile devices
-- **Dark Theme**: Modern dark UI inspired by Podbay.fm
-
-## Screenshots
-
-The UI includes:
-- Home page with search bar
-- Search results with podcast carousel
-- Episode grid with colored accent labels
-
 ---
 
-## Documentation
-
-### Approach
-
-1. **Backend Architecture**: Used NestJS for its modular structure and TypeScript support. The search module handles all podcast-related operations, with a dedicated service for iTunes API integration.
-
-2. **Database Design**: Chose PostgreSQL for reliability and Prisma ORM for type-safe database operations. The schema stores essential podcast data with indexing on commonly queried fields.
-
-3. **Frontend Design**: Built with Next.js 14 App Router for modern React patterns. Components are designed to closely match the Podbay.fm reference design.
-
-4. **Styling**: Used Tailwind CSS with custom color tokens extracted from the reference design for pixel-perfect styling.
 
 ### Challenges Faced
 
@@ -153,18 +130,11 @@ The UI includes:
 
 2. **Image Optimization**: iTunes provides multiple artwork sizes. Used Next.js Image component with proper remote patterns configuration.
 
-3. **RTL Layout**: Ensuring proper right-to-left text direction and scroll behavior for Arabic content.
 
-### Suggestions for Improvement
+### Possible Improvement
 
-1. **Caching**: Implement Redis caching for frequently searched terms to reduce API calls.
+1. **Caching**: 
+- Save already searched / frequently-searched-for items and return them from a cache 
 
-2. **Pagination**: Add pagination for search results to handle large result sets.
-
-3. **User Authentication**: Add user accounts to save favorite podcasts.
-
-4. **Episode Details**: Fetch and display individual episode information from podcast RSS feeds.
-
-5. **Search History**: Store and display recent searches for better UX.
-
-6. **Full-Text Search**: Implement PostgreSQL full-text search for searching within stored podcasts.
+2. **Search History**: 
+- Store and display recent searches

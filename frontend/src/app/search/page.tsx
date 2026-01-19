@@ -7,6 +7,7 @@ import EpisodeMenu from "@/components/EpisodeMenu";
 import LayoutMenu, { LayoutType } from "@/components/LayoutMenu";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import MobileNav from "@/components/MobileNav";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -222,9 +223,10 @@ function SearchContent() {
   return (
     <div className="min-h-screen bg-[#12121f] text-white font-sans flex">
       <Sidebar />
+      <MobileNav />
 
       {/* Main Content */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 pb-16 md:pb-0">
         <Suspense fallback={<div className="h-16 bg-[#12121f]" />}>
           <Header />
         </Suspense>
