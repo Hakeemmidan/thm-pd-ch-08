@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Podcast } from "@/types/podcast";
 import EpisodeMenu from "@/components/EpisodeMenu";
+import HeaderMenu from "@/components/HeaderMenu";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -238,6 +239,9 @@ export default function Home() {
               <button className="px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
                 Sign up
               </button>
+              <div className="ml-1">
+                <HeaderMenu />
+              </div>
             </div>
           </div>
         </header>
