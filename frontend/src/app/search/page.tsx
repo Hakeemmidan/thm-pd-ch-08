@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense, forwardRef, useImperativeHandle } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Podcast, Episode, SearchResponse } from "@/types/podcast";
 import EpisodeMenu from "@/components/EpisodeMenu";
@@ -49,8 +49,26 @@ function PodcastImage({ src, alt, className }: { src: string; alt: string; class
   );
 }
 
-function HorizontalScroll({ children }: { children: React.ReactNode }) {
+interface ScrollHandle {
+  scrollLeft: () => void;
+  scrollRight: () => void;
+}
+
+const HorizontalScroll = forwardRef<ScrollHandle, { children: React.ReactNode }>(({ children }, ref) => {
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useImperativeHandle(ref, () => ({
+    scrollLeft: () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollBy({ left: -600, behavior: "smooth" });
+      }
+    },
+    scrollRight: () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollBy({ left: 600, behavior: "smooth" });
+      }
+    }
+  }));
 
   const scroll = (direction: "left" | "right") => {
     if (scrollRef.current) {
@@ -93,7 +111,8 @@ function HorizontalScroll({ children }: { children: React.ReactNode }) {
       </div>
     </div>
   );
-}
+});
+HorizontalScroll.displayName = "HorizontalScroll";
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -105,6 +124,9 @@ function SearchContent() {
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [episodeLayout, setEpisodeLayout] = useState<LayoutType>("grid");
+
+  const podcastsScrollRef = useRef<ScrollHandle>(null);
+  const episodesScrollRef = useRef<ScrollHandle>(null);
 
   useEffect(() => {
     setSearchTerm(query);
@@ -374,11 +396,33 @@ function SearchContent() {
                 <section>
                   <div className="flex items-end justify-between mb-4">
                     <h2 className="text-white font-bold text-lg leading-tight">Top podcasts for &quot;{query}&quot;</h2>
+                    {/* Header Arrows */}
+                    <div className="flex gap-2">
+                       <button 
+                         onClick={() => podcastsScrollRef.current?.scrollLeft()}
+                         className="p-1 text-gray-400 hover:text-white transition-colors"
+                       >
+                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                         </svg>
+                       </button>
+                       <button 
+                         onClick={() => podcastsScrollRef.current?.scrollRight()}
+                         className="p-1 text-gray-400 hover:text-white transition-colors"
+                       >
+                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                         </svg>
+                       </button>
+                    </div>
                   </div>
 
-                  <div className="bg-[#7b5cff] h-[2px] w-full mb-4 opacity-50" />
+                  {/* Updated Separator */}
+                  <div className="w-full h-[1px] bg-white/10 mb-4 relative">
+                    <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#7b5cff]" />
+                  </div>
 
-                  <HorizontalScroll>
+                  <HorizontalScroll ref={podcastsScrollRef}>
                     {podcasts.slice(0, 10).map((podcast, index) => (
                       <a
                         key={podcast.trackId}
@@ -423,13 +467,39 @@ function SearchContent() {
                 <section>
                    <div className="flex items-end justify-between mb-4">
                     <h2 className="text-white font-bold text-lg leading-tight">Top episodes for &quot;{query}&quot;</h2>
-                    <LayoutMenu currentLayout={episodeLayout} onLayoutChange={setEpisodeLayout} />
+                    <div className="flex items-center gap-4">
+                      {/* Header Arrows (only show if scroll layout) */}
+                      {episodeLayout === "scroll" && (
+                        <div className="flex gap-2">
+                          <button 
+                            onClick={() => episodesScrollRef.current?.scrollLeft()}
+                            className="p-1 text-gray-400 hover:text-white transition-colors"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                          </button>
+                          <button 
+                            onClick={() => episodesScrollRef.current?.scrollRight()}
+                            className="p-1 text-gray-400 hover:text-white transition-colors"
+                          >
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      <LayoutMenu currentLayout={episodeLayout} onLayoutChange={setEpisodeLayout} />
+                    </div>
                   </div>
 
-                  <div className="bg-[#00d4aa] h-[2px] w-full mb-4 opacity-50" />
+                  {/* Updated Separator */}
+                  <div className="w-full h-[1px] bg-white/10 mb-4 relative">
+                    <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#00d4aa]" />
+                  </div>
 
                   {episodeLayout === "scroll" ? (
-                    <HorizontalScroll>
+                    <HorizontalScroll ref={episodesScrollRef}>
                       {episodes.slice(0, 18).map((episode, index) => renderEpisodeCard(episode, index, "scroll"))}
                     </HorizontalScroll>
                   ) : (
@@ -451,7 +521,10 @@ function SearchContent() {
                     <h2 className="text-white font-bold text-lg leading-tight">All results for &quot;{query}&quot;</h2>
                   </div>
 
-                  <div className="bg-[#f5a623] h-[2px] w-full mb-6 opacity-50" />
+                  {/* Updated Separator */}
+                  <div className="w-full h-[1px] bg-white/10 mb-6 relative">
+                     <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#f5a623]" />
+                  </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {podcasts.map((podcast, index) => (
