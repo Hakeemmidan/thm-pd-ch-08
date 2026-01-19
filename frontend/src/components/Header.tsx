@@ -10,12 +10,32 @@ export default function Header() {
   const initialQuery = searchParams.get("q") || "";
   const [searchTerm, setSearchTerm] = useState(initialQuery);
 
+  // Sync initial query from URL, but don't overwrite user typing
   useEffect(() => {
-    setSearchTerm(initialQuery);
+    if (initialQuery !== searchTerm) {
+      setSearchTerm(initialQuery);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialQuery]);
+
+  useEffect(() => { // debounced search
+    const timer = setTimeout(() => {
+      // don't search if it's the same as the current query
+      if (searchTerm === initialQuery) return;
+
+      if (searchTerm.trim()) {
+        router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
+      } else if (searchTerm === "" && initialQuery !== "") {
+        router.push("/");
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timer);
+  }, [searchTerm, router, initialQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // Immediate search on Enter
     if (searchTerm.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
     }
