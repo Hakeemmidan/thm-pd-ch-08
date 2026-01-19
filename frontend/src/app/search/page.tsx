@@ -418,9 +418,7 @@ function SearchContent() {
                   </div>
 
                   {/* Updated Separator */}
-                  <div className="w-full h-[1px] bg-white/10 mb-4 relative">
-                    <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#7b5cff]" />
-                  </div>
+                  <div className="w-full h-[1px] bg-white/10 mb-4" />
 
                   <HorizontalScroll ref={podcastsScrollRef}>
                     {podcasts.slice(0, 10).map((podcast, index) => (
@@ -494,9 +492,7 @@ function SearchContent() {
                   </div>
 
                   {/* Updated Separator */}
-                  <div className="w-full h-[1px] bg-white/10 mb-4 relative">
-                    <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#00d4aa]" />
-                  </div>
+                  <div className="w-full h-[1px] bg-white/10 mb-4" />
 
                   {episodeLayout === "scroll" ? (
                     <HorizontalScroll ref={episodesScrollRef}>

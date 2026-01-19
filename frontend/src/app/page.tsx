@@ -274,7 +274,7 @@ export default function Home() {
               </div>
             </div>
             
-            <div className="bg-[#7b5cff] h-[2px] w-full mb-4 opacity-50" />
+            <div className="w-full h-[1px] bg-white/10 mb-4" />
 
             <HorizontalScroll>
               {isLoading ? (
@@ -341,7 +341,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-[#00d4aa] h-[2px] w-full mb-4 opacity-50" />
+            <div className="w-full h-[1px] bg-white/10 mb-4" />
 
             <HorizontalScroll>
               {[
@@ -415,7 +415,7 @@ export default function Home() {
                 </button>
             </div>
 
-            <div className="bg-[#f5a623] h-[2px] w-full mb-4 opacity-50" />
+            <div className="w-full h-[1px] bg-white/10 mb-4" />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
               {isLoading ? (
