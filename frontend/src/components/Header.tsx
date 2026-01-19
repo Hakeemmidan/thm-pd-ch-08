@@ -1,12 +1,18 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import HeaderMenu from "./HeaderMenu";
 
 export default function Header() {
   const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
+  const searchParams = useSearchParams();
+  const initialQuery = searchParams.get("q") || "";
+  const [searchTerm, setSearchTerm] = useState(initialQuery);
+
+  useEffect(() => {
+    setSearchTerm(initialQuery);
+  }, [initialQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -16,57 +22,55 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-b border-white/5">
-      <div className="max-w-[1800px] mx-auto px-5 h-16 flex items-center justify-between gap-6">
-        {/* Logo */}
-        <Link href="/" className="flex-shrink-0">
-          <div className="flex items-center gap-2">
-            <svg 
-              viewBox="0 0 24 24" 
-              className="w-8 h-8 text-accent-purple"
-              fill="currentColor"
-            >
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+    <header className="sticky top-0 z-40 bg-[#12121f]/95 backdrop-blur-sm px-6 h-16 flex items-center border-b border-white/5">
+      <div className="flex items-center gap-4 flex-1">
+        {/* Nav Arrows */}
+        <div className="flex gap-1 text-gray-400">
+          <button className="p-2 hover:text-white transition-colors" onClick={() => router.back()}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            <span className="text-xl font-bold text-text-primary">Podbay</span>
-          </div>
-        </Link>
+          </button>
+          <button className="p-2 hover:text-white transition-colors" onClick={() => router.forward()}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
 
         {/* Search Bar */}
-        <form onSubmit={handleSearch} className="flex-1 max-w-xl">
-          <div className="relative">
-            <svg 
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-text-muted"
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
-            </svg>
+        <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
+          <div className="relative group">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search for podcasts..."
-              className="w-full h-10 pl-12 pr-4 bg-background-card text-text-primary placeholder-text-muted rounded-lg border border-white/10 focus:border-accent-purple/50 focus:outline-none transition-colors text-sm"
+              placeholder="Search through over 70 million podcasts and episodes..."
+              className="w-full h-10 px-4 pl-10 bg-[#1c1c2e] text-gray-200 text-[15px] placeholder-gray-500 rounded-[4px] border border-transparent focus:border-[#7b5cff]/50 focus:bg-[#25253a] focus:outline-none transition-all"
             />
+            <svg 
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7b5cff] transition-colors"
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
         </form>
 
-        {/* Navigation */}
-        <nav className="hidden md:flex items-center gap-6">
-          <Link href="/charts" className="text-text-secondary hover:text-text-primary text-sm transition-colors">
-            Charts
-          </Link>
-          <Link href="/discover" className="text-text-secondary hover:text-text-primary text-sm transition-colors">
-            Discover
-          </Link>
-        </nav>
+        {/* Auth Buttons */}
+        <div className="flex items-center gap-2 ml-auto">
+          <button className="px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white bg-[#1c1c2e] hover:bg-[#25253a] rounded-[4px] border border-white/5 transition-colors">
+            Log in
+          </button>
+          <button className="px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
+            Sign up
+          </button>
+          <div className="ml-1">
+            <HeaderMenu />
+          </div>
+        </div>
       </div>
     </header>
   );
