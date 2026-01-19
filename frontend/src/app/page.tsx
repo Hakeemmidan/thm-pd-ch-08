@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { Podcast } from "@/types/podcast";
 import EpisodeMenu from "@/components/EpisodeMenu";
-import HeaderMenu from "@/components/HeaderMenu";
+import Sidebar from "@/components/Sidebar";
+import Header from "@/components/Header";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -44,44 +44,13 @@ function PodcastImage({ src, alt, className }: { src: string; alt: string; class
 function HorizontalScroll({ children }: { children: React.ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const scroll = (direction: "left" | "right") => {
-    if (scrollRef.current) {
-      const scrollAmount = 600;
-      scrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth",
-      });
-    }
-  };
-
   return (
     <div className="relative group/scroll">
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide scroll-smooth"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        className="flex gap-4 overflow-x-auto pb-2 scroll-smooth custom-scrollbar"
       >
         {children}
-      </div>
-
-      {/* Navigation arrows (visible on hover) */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 right-0 flex justify-between pointer-events-none px-2 opacity-0 group-hover/scroll:opacity-100 transition-opacity">
-        <button
-          onClick={() => scroll("left")}
-          className="pointer-events-auto p-2 rounded-full bg-black/80 text-white hover:bg-black transition-colors shadow-lg"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <button
-          onClick={() => scroll("right")}
-          className="pointer-events-auto p-2 rounded-full bg-black/80 text-white hover:bg-black transition-colors shadow-lg"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
     </div>
   );
@@ -99,8 +68,6 @@ const genreGradients = [
 ];
 
 export default function Home() {
-  const router = useRouter();
-  const [searchTerm, setSearchTerm] = useState("");
   const [trendingPodcasts, setTrendingPodcasts] = useState<Podcast[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -114,7 +81,6 @@ export default function Home() {
       const response = await fetch(`${API_URL}/api/search?term=podcast`);
       if (response.ok) {
         const data = await response.json();
-        // Updated to use the new response structure
         setTrendingPodcasts(data.podcasts || []);
       }
     } catch {
@@ -124,127 +90,17 @@ export default function Home() {
     }
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchTerm.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
-    }
-  };
-
   const artistColors = ["text-[#00d4aa]", "text-[#ff6b9d]", "text-[#f5a623]", "text-[#7b5cff]"];
 
   return (
     <div className="min-h-screen bg-[#12121f] text-white font-sans flex">
-      {/* Left Sidebar */}
-      <aside className="w-[240px] flex-shrink-0 bg-[#0e0e18] flex flex-col h-screen sticky top-0 border-r border-white/5 z-20">
-        {/* Logo */}
-        <div className="p-5">
-          <a href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7b5cff] to-[#ff6b9d] flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-              </svg>
-            </div>
-            <span className="font-bold text-xl tracking-tight">Podbay</span>
-          </a>
-        </div>
-
-        {/* Main Nav */}
-        <nav className="px-3 space-y-0.5">
-          <a href="/" className="flex items-center gap-3 px-3 py-2 rounded-md text-[#00d4aa] bg-white/[0.04]">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
-            </svg>
-            <span className="text-[15px] font-medium">Home</span>
-          </a>
-          <a href="/discover" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-            <span className="text-[15px] font-medium">Discover</span>
-          </a>
-        </nav>
-
-        {/* Your Stuff Section */}
-        <div className="mt-8 px-5 mb-2">
-          <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">YOUR STUFF</h3>
-        </div>
-        <nav className="px-3 space-y-0.5">
-          <a href="/queue" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            <span className="text-[15px] font-medium">My Queue</span>
-          </a>
-          <a href="/podcasts" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-            </svg>
-            <span className="text-[15px] font-medium">My Podcasts</span>
-          </a>
-          <a href="/recents" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-400 hover:text-white hover:bg-white/[0.04] transition-colors">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <span className="text-[15px] font-medium">Recents</span>
-          </a>
-        </nav>
-      </aside>
+      <Sidebar />
 
       {/* Main Content */}
       <div className="flex-1 min-w-0">
-        {/* Header */}
-        <header className="sticky top-0 z-40 bg-[#12121f]/95 backdrop-blur-sm px-6 h-16 flex items-center border-b border-white/5">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Nav Arrows */}
-            <div className="flex gap-1 text-gray-400">
-              <button className="p-2 hover:text-white transition-colors" onClick={() => router.back()}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button className="p-2 hover:text-white transition-colors" onClick={() => router.forward()}>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Search Bar */}
-            <form onSubmit={handleSearch} className="flex-1 max-w-3xl">
-              <div className="relative group">
-                <input
-                  type="text"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search through over 70 million podcasts and episodes..."
-                  className="w-full h-10 px-4 pl-10 bg-[#1c1c2e] text-gray-200 text-[15px] placeholder-gray-500 rounded-[4px] border border-transparent focus:border-[#7b5cff]/50 focus:bg-[#25253a] focus:outline-none transition-all"
-                />
-                <svg 
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-[#7b5cff] transition-colors"
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-              </div>
-            </form>
-
-            {/* Auth Buttons */}
-            <div className="flex items-center gap-2 ml-auto">
-              <button className="px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white bg-[#1c1c2e] hover:bg-[#25253a] rounded-[4px] border border-white/5 transition-colors">
-                Log in
-              </button>
-              <button className="px-4 py-1.5 text-sm font-medium text-white bg-[#32324a] hover:bg-[#3d3d5c] rounded-[4px] border border-white/5 transition-colors">
-                Sign up
-              </button>
-              <div className="ml-1">
-                <HeaderMenu />
-              </div>
-            </div>
-          </div>
-        </header>
+        <Suspense fallback={<div className="h-16 bg-[#12121f]" />}>
+          <Header />
+        </Suspense>
 
         {/* Page Content */}
         <main className="p-6 space-y-10">
