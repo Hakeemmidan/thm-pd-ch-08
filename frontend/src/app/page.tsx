@@ -198,12 +198,12 @@ export default function Home() {
           <div className="flex items-center gap-4 flex-1">
             {/* Nav Arrows */}
             <div className="flex gap-1 text-gray-400">
-              <button className="p-2 hover:text-white transition-colors">
+              <button className="p-2 hover:text-white transition-colors" onClick={() => router.back()}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <button className="p-2 hover:text-white transition-colors">
+              <button className="p-2 hover:text-white transition-colors" onClick={() => router.forward()}>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
