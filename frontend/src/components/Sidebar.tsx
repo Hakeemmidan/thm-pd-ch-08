@@ -9,7 +9,7 @@ export default function Sidebar() {
 
   return (
     <aside className="w-[240px] flex-shrink-0 bg-[#0e0e18] flex flex-col h-screen sticky top-0 border-r border-white/5 z-20">
-      {/* Logo */}
+      {/* Logo - Always the same */}
       <div className="p-5">
         <a href="/" className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7b5cff] to-[#ff6b9d] flex items-center justify-center shadow-lg shadow-purple-500/20">
