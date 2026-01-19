@@ -55,19 +55,13 @@ export default function LayoutMenu({ currentLayout, onLayoutChange }: LayoutMenu
             onClick={() => handleSelect("grid")}
             className={`w-full text-left px-4 py-2.5 text-[13px] hover:bg-white/10 transition-colors ${currentLayout === "grid" ? "text-white font-medium bg-white/5" : "text-gray-200"}`}
           >
-            Switch layout to Grid
+            Switch layout to Compact
           </button>
           <button
             onClick={() => handleSelect("list")}
             className={`w-full text-left px-4 py-2.5 text-[13px] hover:bg-white/10 transition-colors ${currentLayout === "list" ? "text-white font-medium bg-white/5" : "text-gray-200"}`}
           >
             Switch layout to List
-          </button>
-          <button
-            onClick={() => handleSelect("compact")}
-            className={`w-full text-left px-4 py-2.5 text-[13px] hover:bg-white/10 transition-colors ${currentLayout === "compact" ? "text-white font-medium bg-white/5" : "text-gray-200"}`}
-          >
-            Switch layout to Compact
           </button>
         </div>
       )}

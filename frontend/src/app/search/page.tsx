@@ -513,55 +513,6 @@ function SearchContent() {
                   )}
                 </section>
               )}
-
-              {/* All Results */}
-              {podcasts.length > 0 && (
-                <section>
-                  <div className="flex items-end justify-between mb-4">
-                    <h2 className="text-white font-bold text-lg leading-tight">All results for &quot;{query}&quot;</h2>
-                  </div>
-
-                  {/* Updated Separator */}
-                  <div className="w-full h-[1px] bg-white/10 mb-6 relative">
-                     <div className="absolute left-0 top-0 h-[1px] w-12 bg-[#f5a623]" />
-                  </div>
-
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                    {podcasts.map((podcast, index) => (
-                      <a
-                        key={podcast.trackId}
-                        href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
-                        className="group block"
-                      >
-                        <div className="relative aspect-square mb-3">
-                          <div className="absolute inset-0 bg-[#1c1c2e] rounded-lg overflow-hidden shadow-lg shadow-black/20">
-                            <PodcastImage
-                              src={podcast.artworkUrl600 || podcast.artworkUrl100}
-                              alt={podcast.collectionName}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg">
-                            <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
-                              <svg className="w-4 h-4 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M8 5v14l11-7z"/>
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="min-w-0">
-                          <h3 className="text-white text-[14px] font-bold leading-tight mb-1 line-clamp-2 group-hover:underline decoration-1">
-                            {podcast.collectionName}
-                          </h3>
-                          <p className="text-gray-500 text-[12px] truncate">
-                            {podcast.artistName}
-                          </p>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </section>
-              )}
             </div>
           ) : query && (
             <div className="text-center py-20">
