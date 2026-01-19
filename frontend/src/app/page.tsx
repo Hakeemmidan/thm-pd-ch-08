@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Podcast } from "@/types/podcast";
+import EpisodeMenu from "@/components/EpisodeMenu";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -440,9 +441,14 @@ export default function Home() {
                     </div>
 
                     {/* Episode Title (White) */}
-                    <h3 className="text-white text-[13px] font-bold leading-snug group-hover/card:underline decoration-1 line-clamp-2">
-                      {podcast.trackName || podcast.collectionName}
-                    </h3>
+                    <div className="flex justify-between items-start gap-2">
+                        <h3 className="text-white text-[13px] font-bold leading-snug group-hover/card:underline decoration-1 line-clamp-2">
+                            {podcast.collectionName}
+                        </h3>
+                        <div className="self-start">
+                          <EpisodeMenu />
+                        </div>
+                    </div>
                   </a>
                 ))
               )}

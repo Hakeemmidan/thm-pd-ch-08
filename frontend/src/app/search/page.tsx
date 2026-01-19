@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Podcast, Episode, SearchResponse } from "@/types/podcast";
+import EpisodeMenu from "@/components/EpisodeMenu";
+import LayoutMenu, { LayoutType } from "@/components/LayoutMenu";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
@@ -10,7 +12,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 const formatDate = (dateStr: string) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
-  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 };
 
 // Helper to format duration ms to "Xmin"
@@ -101,6 +103,7 @@ function SearchContent() {
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [episodes, setEpisodes] = useState<Episode[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [episodeLayout, setEpisodeLayout] = useState<LayoutType>("grid");
 
   useEffect(() => {
     setSearchTerm(query);
@@ -135,6 +138,103 @@ function SearchContent() {
   };
 
   const artistColors = ["text-[#00d4aa]", "text-[#ff6b9d]", "text-[#f5a623]", "text-[#7b5cff]"];
+
+  const renderEpisodeCard = (episode: Episode, index: number, layout: LayoutType) => {
+    const isList = layout === "list";
+    const isCompact = layout === "compact";
+    const isScroll = layout === "scroll";
+
+    if (isList) {
+      return (
+        <div key={episode.trackId} className="flex gap-4 p-4 hover:bg-[#1c1c2e] rounded-md transition-colors group/card border-b border-white/5 last:border-0">
+          {/* Artwork */}
+          <div className="relative w-32 h-32 flex-shrink-0">
+            <div className="absolute inset-0 bg-[#1c1c2e] rounded-md overflow-hidden shadow-lg group-hover/card:shadow-xl transition-shadow">
+              <PodcastImage
+                src={episode.artworkUrl600 || episode.artworkUrl160 || ""}
+                alt={episode.trackName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0 flex flex-col">
+            <h3 className="text-white text-[16px] font-bold leading-tight mb-1 group-hover/card:underline decoration-1">
+              {episode.trackName}
+            </h3>
+            <div className={`text-[13px] font-medium mb-2 ${artistColors[index % artistColors.length]}`}>
+              {episode.collectionName}
+            </div>
+            
+            <p className="text-gray-400 text-sm line-clamp-2 mb-auto leading-relaxed">
+              {episode.description || episode.shortDescription || "No description available."}
+            </p>
+
+            <div className="flex items-center gap-3 text-xs text-gray-500 font-medium mt-2">
+              <span>{formatDate(episode.releaseDate)}</span>
+              <span>{formatDuration(episode.trackTimeMillis)}</span>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex flex-col items-end gap-2">
+            <button className="p-2 text-gray-400 hover:text-white hover:bg-white/10 rounded-full transition-colors">
+              <svg className="w-8 h-8 fill-current" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </button>
+            <div className="mt-auto">
+              <EpisodeMenu />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Grid, Scroll, Compact
+    return (
+      <a
+        key={episode.trackId}
+        href={episode.episodeUrl || "#"}
+        className={`bg-[#1c1c2e] hover:bg-[#25253a] rounded-md transition-colors group/card flex gap-3 relative
+          ${isCompact ? "p-2 items-center" : "p-3"}
+          ${isScroll ? "min-w-[300px] w-[300px]" : ""}
+        `}
+      >
+         <div className={`relative flex-shrink-0 ${isCompact ? "w-10 h-10" : "w-16 h-16"}`}>
+            <div className="absolute inset-0 bg-[#1c1c2e] rounded-md overflow-hidden shadow-lg">
+              <PodcastImage
+                src={episode.artworkUrl160 || episode.artworkUrl600 || ""}
+                alt={episode.trackName}
+                className="w-full h-full object-cover"
+              />
+            </div>
+         </div>
+         <div className="flex-1 min-w-0 flex flex-col justify-center">
+            {!isCompact && (
+              <div className={`text-[11px] font-bold mb-0.5 uppercase tracking-wide ${artistColors[index % artistColors.length]}`}>
+                {episode.collectionName?.slice(0, 30)}
+              </div>
+            )}
+            <h3 className={`text-white font-bold leading-tight group-hover/card:underline decoration-1 line-clamp-1
+              ${isCompact ? "text-[12px] mb-0" : "text-[13px] mb-1"}
+            `}>
+              {episode.trackName}
+            </h3>
+             <div className={`flex items-center gap-2 text-[10px] font-medium text-gray-500 uppercase tracking-wide
+               ${isCompact ? "mt-0" : ""}
+             `}>
+                <span>{formatDate(episode.releaseDate || "")}</span>
+                <span>{formatDuration(episode.trackTimeMillis)}</span>
+             </div>
+         </div>
+         <div className="self-center">
+            <EpisodeMenu />
+         </div>
+      </a>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-[#12121f] text-white font-sans flex">
@@ -319,38 +419,67 @@ function SearchContent() {
                 <section>
                    <div className="flex items-end justify-between mb-4">
                     <h2 className="text-white font-bold text-lg leading-tight">Top episodes for &quot;{query}&quot;</h2>
+                    <LayoutMenu currentLayout={episodeLayout} onLayoutChange={setEpisodeLayout} />
                   </div>
 
                   <div className="bg-[#00d4aa] h-[2px] w-full mb-4 opacity-50" />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {episodes.slice(0, 18).map((episode, index) => (
+                  {episodeLayout === "scroll" ? (
+                    <HorizontalScroll>
+                      {episodes.slice(0, 18).map((episode, index) => renderEpisodeCard(episode, index, "scroll"))}
+                    </HorizontalScroll>
+                  ) : (
+                    <div className={`grid gap-3
+                      ${episodeLayout === "grid" ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3" : ""}
+                      ${episodeLayout === "list" ? "grid-cols-1" : ""}
+                      ${episodeLayout === "compact" ? "grid-cols-1" : ""}
+                    `}>
+                      {episodes.slice(0, 18).map((episode, index) => renderEpisodeCard(episode, index, episodeLayout))}
+                    </div>
+                  )}
+                </section>
+              )}
+
+              {/* All Results */}
+              {podcasts.length > 0 && (
+                <section>
+                  <div className="flex items-end justify-between mb-4">
+                    <h2 className="text-white font-bold text-lg leading-tight">All results for &quot;{query}&quot;</h2>
+                  </div>
+
+                  <div className="bg-[#f5a623] h-[2px] w-full mb-6 opacity-50" />
+
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    {podcasts.map((podcast, index) => (
                       <a
-                        key={episode.trackId}
-                        href={episode.episodeUrl || "#"}
-                        className="bg-[#1c1c2e] hover:bg-[#25253a] p-3 rounded-md transition-colors group/card flex gap-3"
+                        key={podcast.trackId}
+                        href={`/search?q=${encodeURIComponent(podcast.collectionName)}`}
+                        className="group block"
                       >
-                         <div className="relative w-16 h-16 flex-shrink-0">
-                            <div className="absolute inset-0 bg-[#1c1c2e] rounded-md overflow-hidden shadow-lg">
-                              <PodcastImage
-                                src={episode.artworkUrl160 || episode.artworkUrl600 || ""}
-                                alt={episode.trackName}
-                                className="w-full h-full object-cover"
-                              />
+                        <div className="relative aspect-square mb-3">
+                          <div className="absolute inset-0 bg-[#1c1c2e] rounded-lg overflow-hidden shadow-lg shadow-black/20">
+                            <PodcastImage
+                              src={podcast.artworkUrl600 || podcast.artworkUrl100}
+                              alt={podcast.collectionName}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center rounded-lg">
+                            <div className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-xl transform scale-75 group-hover:scale-100 transition-transform">
+                              <svg className="w-4 h-4 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                              </svg>
                             </div>
-                         </div>
-                         <div className="flex-1 min-w-0 flex flex-col justify-center">
-                            <div className={`text-[11px] font-bold mb-0.5 uppercase tracking-wide ${artistColors[index % artistColors.length]}`}>
-                              {episode.collectionName?.slice(0, 30)}
-                            </div>
-                            <h3 className="text-white text-[13px] font-bold leading-tight group-hover/card:underline decoration-1 line-clamp-1 mb-1">
-                              {episode.trackName}
-                            </h3>
-                             <div className="flex items-center gap-2 text-[10px] font-medium text-gray-500 uppercase tracking-wide">
-                                <span>{formatDate(episode.releaseDate || "")}</span>
-                                <span>{formatDuration(episode.trackTimeMillis)}</span>
-                             </div>
-                         </div>
+                          </div>
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-white text-[14px] font-bold leading-tight mb-1 line-clamp-2 group-hover:underline decoration-1">
+                            {podcast.collectionName}
+                          </h3>
+                          <p className="text-gray-500 text-[12px] truncate">
+                            {podcast.artistName}
+                          </p>
+                        </div>
                       </a>
                     ))}
                   </div>

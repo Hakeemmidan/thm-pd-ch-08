@@ -24,6 +24,8 @@ export interface ITunesEpisode {
   releaseDate: string;
   trackTimeMillis?: number;
   episodeUrl?: string;
+  description?: string;
+  shortDescription?: string;
   kind: 'podcast-episode';
 }
 

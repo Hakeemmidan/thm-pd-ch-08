@@ -29,7 +29,7 @@ thmanyah-fullstack-challenge/
 │   │   ├── app/           # App Router pages
 │   │   ├── components/    # React components
 │   │   ├── types/         # TypeScript types
-│   │   └── fonts/         # IBM Plex Sans Arabic
+│   │   └── fonts/         # Fonts
 │   └── tailwind.config.ts # Tailwind configuration
 └── README.md
 ```

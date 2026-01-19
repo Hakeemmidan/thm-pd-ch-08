@@ -26,6 +26,8 @@ export interface Episode {
   releaseDate: string;
   trackTimeMillis?: number;
   episodeUrl?: string;
+  description?: string;
+  shortDescription?: string;
 }
 
 export interface SearchResponse {
