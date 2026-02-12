@@ -134,55 +134,6 @@ GET /api/search?term={keyword}
 ---
 
 
-## Deploying to Vercel
-
-This project deploys as **two separate Vercel projects** from the same repo (monorepo setup).
-
-### Prerequisites
-
-- A [Vercel](https://vercel.com) account
-- A cloud PostgreSQL database ([Neon](https://neon.tech), [Supabase](https://supabase.com), or [Vercel Postgres](https://vercel.com/docs/storage/vercel-postgres))
-
-### 1. Set Up a Cloud Database
-
-Create a PostgreSQL database on your preferred provider and note the connection string (e.g. `postgresql://user:pass@host:5432/dbname`).
-
-### 2. Deploy the Backend
-
-1. Import the repo on Vercel → **New Project**
-2. Set the **Root Directory** to `backend`
-3. Set **Framework Preset** to `Other`
-4. Add the following **Environment Variable**:
-   - `DATABASE_URL` = your cloud PostgreSQL connection string
-5. Deploy
-
-Once deployed, note the backend URL (e.g. `https://your-backend.vercel.app`).
-
-### 3. Deploy the Frontend
-
-1. Import the same repo again on Vercel → **New Project**
-2. Set the **Root Directory** to `frontend`
-3. Set **Framework Preset** to `Next.js`
-4. Add the following **Environment Variable**:
-   - `NEXT_PUBLIC_API_URL` = your backend Vercel URL (e.g. `https://your-backend.vercel.app`)
-5. Deploy
-
-### 4. (Optional) Configure CORS
-
-If you want to restrict backend CORS to only your frontend domain, add to the backend project's environment variables:
-
-- `CORS_ORIGINS` = `https://your-frontend.vercel.app`
-
-### Environment Variables Summary
-
-| Project  | Variable              | Description                          |
-|----------|-----------------------|--------------------------------------|
-| Backend  | `DATABASE_URL`        | PostgreSQL connection string         |
-| Backend  | `CORS_ORIGINS`        | Comma-separated allowed origins      |
-| Frontend | `NEXT_PUBLIC_API_URL` | Backend URL (e.g. `https://...`)     |
-
----
-
 ### Challenges Faced
 
 1. **iTunes API Response**: The iTunes API returns different data structures depending on the search parameters. Handled this by mapping only the essential fields.
